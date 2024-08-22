@@ -1,4 +1,4 @@
-name: Build and deploy Node.js app to Azure Web App - todoappp
+name: Build and deploy Next.js app to Azure Web App
 
 on:
   push:
@@ -11,45 +11,37 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      # Step 1: Checkout the code
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
 
-      - name: npm install, build, and test
+      # Step 3: Install dependencies, build, and run tests
+      - name: Install dependencies, build, and test
         run: |
           npm install
-          npm run build --if-present
-          npm run test --if-present
-      
+          npm run build
+          npm test
+
+      # Step 4: Compress build folder
       - name: Compress build folder
         shell: pwsh
         run: |
-          $excludePaths = @('node_modules\', '.git\')
-          $sourcePath = '.'
-          $zipFilePath = 'build.zip'
-          $zipFilePath | Remove-Item -ErrorAction Ignore
-          Add-Type -AssemblyName 'System.IO.Compression.FileSystem'
-          [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcePath, $zipFilePath, [System.IO.Compression.CompressionLevel]::Optimal, $false)
-          $zip = [System.IO.Compression.ZipFile]::Open($zipFilePath, [System.IO.Compression.ZipArchiveMode]::Update)
-          foreach ($excludePath in $excludePaths) {
-            $files = Get-ChildItem -Path $sourcePath -Recurse -Exclude $excludePath
-            foreach ($file in $files) {
-              $entryName = $file.FullName.Substring($sourcePath.Length + 1)
-              $entry = $zip.GetEntry($entryName)
-              if ($entry) {
-                $entry.Delete()
-              }
-            }
-          }
-          $zip.Dispose()
+          Remove-Item -Force -Recurse -ErrorAction Ignore build.zip
+          $excludePaths = @('node_modules', '.git')
+          $sourcePath = Get-Location
+          $zipPath = Join-Path $sourcePath 'build.zip'
+          [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcePath, $zipPath, $excludePaths)
 
-      - name: Upload compressed artifact for deployment job
+      # Step 5: Upload compressed artifact for deployment job
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
+          name: build-artifact
           path: build.zip
 
   deploy:
@@ -59,25 +51,29 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write # This is required for requesting the JWT
+      id-token: write
 
     steps:
+      # Step 6: Download the build artifact
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: node-app
-      
+          name: build-artifact
+
+      # Step 7: Decompress artifact
       - name: Decompress artifact
         run: unzip build.zip
 
+      # Step 8: Login to Azure
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_2A80937E1B5D4E70B9FA697AE355E037 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F3047086A1EB41A89A4220BEABDDA8E8 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_44AF3210F971497CB5BE2973328465BB }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID_2A80937E1B5D4E70B9FA697AE355E037 }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_F3047086A1EB41A89A4220BEABDDA8E8 }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_44AF3210F971497CB5BE2973328465BB }}
 
-      - name: 'Deploy to Azure Web App'
+      # Step 9: Deploy to Azure Web App
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
