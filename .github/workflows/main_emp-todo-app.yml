@@ -1,4 +1,4 @@
-name: Build and deploy Node.js app to Azure Web App - emp-todo-app
+name: Build and deploy Node.js app to Azure Web App - todoappp
 
 on:
   push:
@@ -25,14 +25,15 @@ jobs:
           npm run test --if-present
       
       - name: Compress build folder
+        shell: pwsh
         run: |
-          tar -czf build.tar.gz . --exclude=**/node_modules/** --exclude=**/.git/**
+          Compress-Archive -Path . -DestinationPath build.zip -Exclude 'node_modules/*', '.git/*'
 
       - name: Upload compressed artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: build.tar.gz
+          path: build.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -41,7 +42,7 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write # This is required for requesting the JWT
 
     steps:
       - name: Download artifact from build job
@@ -50,19 +51,19 @@ jobs:
           name: node-app
       
       - name: Decompress artifact
-        run: tar -xzf build.tar.gz
+        run: unzip build.zip
 
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_0D24A85F27D346CEBDF79CE620153E13 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5AE0F0B9459B4558AB75E0BDDBAAA2B2 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C26AC133C5C34B5D818B9F42B61B2727 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_2A80937E1B5D4E70B9FA697AE355E037 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F3047086A1EB41A89A4220BEABDDA8E8 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_44AF3210F971497CB5BE2973328465BB }}
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'emp-todo-app'
+          app-name: 'todoappp'
           slot-name: 'Production'
           package: .
