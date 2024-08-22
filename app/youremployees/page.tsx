@@ -1,3 +1,4 @@
+
 "use client";
 import { CiEdit } from "react-icons/ci";
 import { MdOutlineDeleteOutline } from "react-icons/md";
@@ -19,10 +20,10 @@ export default function YourEmployee() {
   const [loading, setLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [emploading, setEmpLoading] = useState(true);
-  const [delLoading, setDelLoading] = useState(false);
+  const [delLoading, setDelLoading]: any = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const { status, data } = useSession();
+  const { status, data }: any = useSession();
   const [formData, setFormData] = useState<any>({
     name: "",
     email: "",
@@ -78,11 +79,11 @@ export default function YourEmployee() {
   const fetchUserEmployee = () => {
     dispatch(fetchUserEmployeeData(data?.user?.id))
       .unwrap()
-      .then((response) => {
+      .then((response: any) => {
         setEmployees(response.employee);
         setEmpLoading(false);
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.log("error", error);
         setEmpLoading(false);
       });
@@ -92,9 +93,9 @@ export default function YourEmployee() {
     fetchUserEmployee();
   }, [data]);
 
-  const deleteEmployee = async (id) => {
+  const deleteEmployee = async (id: any) => {
     try {
-      setDelLoading((prev) => ({ ...prev, [id]: true }));
+      setDelLoading((prev: any) => ({ ...prev, [id]: true }));
       const responce = await dispatch(deleteEmployeeData(id));
       if (responce.payload.message == "Employee Delete successfully") {
         fetchUserEmployee();
@@ -106,11 +107,11 @@ export default function YourEmployee() {
       console.log("error", error);
       return toast.error("Error while deleting Employee");
     } finally {
-      setDelLoading((prev) => ({ ...prev, [id]: false }));
+      setDelLoading((prev: any) => ({ ...prev, [id]: false }));
     }
   };
 
-  const handleupdateEmployee = async (employee) => {
+  const handleupdateEmployee = async (employee: any) => {
     setIsOpen(true);
     setIsUpdate(true);
     setEditingEmployee(employee);
@@ -206,7 +207,7 @@ export default function YourEmployee() {
                     </tr>
                   ) : (
                     <>
-                      {employees?.map((item, i) => {
+                      {employees?.map((item: any, i) => {
                         return (
                           <tr
                             key={i}
