@@ -27,7 +27,24 @@ jobs:
       - name: Compress build folder
         shell: pwsh
         run: |
-          Compress-Archive -Path . -DestinationPath build.zip -Exclude 'node_modules/*', '.git/*'
+          $excludePaths = @('node_modules\', '.git\')
+          $sourcePath = '.'
+          $zipFilePath = 'build.zip'
+          $zipFilePath | Remove-Item -ErrorAction Ignore
+          Add-Type -AssemblyName 'System.IO.Compression.FileSystem'
+          [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcePath, $zipFilePath, [System.IO.Compression.CompressionLevel]::Optimal, $false)
+          $zip = [System.IO.Compression.ZipFile]::Open($zipFilePath, [System.IO.Compression.ZipArchiveMode]::Update)
+          foreach ($excludePath in $excludePaths) {
+            $files = Get-ChildItem -Path $sourcePath -Recurse -Exclude $excludePath
+            foreach ($file in $files) {
+              $entryName = $file.FullName.Substring($sourcePath.Length + 1)
+              $entry = $zip.GetEntry($entryName)
+              if ($entry) {
+                $entry.Delete()
+              }
+            }
+          }
+          $zip.Dispose()
 
       - name: Upload compressed artifact for deployment job
         uses: actions/upload-artifact@v4
