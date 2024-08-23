@@ -1,3 +1,6 @@
 {
-  "presets": ["@babel/preset-env"]
+  "presets": [
+    ["next/babel", { "preset-env": { "targets": "defaults" } }]
+  ],
+  "ignore": ["node_modules/some-package"]
 }

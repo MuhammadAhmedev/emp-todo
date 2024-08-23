@@ -1,9 +1,10 @@
-import NextAuth from "next-auth/next";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcrypt";
 import prisma from "@/lib/prisma";
 
-export const authOptions: any = {
+// Initialize authOptions with proper typing from NextAuth
+const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -39,11 +40,10 @@ export const authOptions: any = {
       },
     }),
   ],
-  //   debug: process.env.NODE_ENV === 'development',
   session: {
-    strategy: "jwt",
+    strategy: "jwt", // Ensure 'strategy' is correctly typed
   },
-  page: {
+  pages: {
     signIn: "/login",
   },
   callbacks: {
@@ -68,6 +68,7 @@ export const authOptions: any = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
-const handler: any = NextAuth(authOptions);
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

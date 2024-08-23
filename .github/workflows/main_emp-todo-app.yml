@@ -32,10 +32,16 @@ jobs:
         shell: pwsh
         run: |
           Remove-Item -Force -Recurse -ErrorAction Ignore build.zip
-          $excludePaths = @('node_modules', '.git')
-          $sourcePath = Get-Location
-          $zipPath = Join-Path $sourcePath 'build.zip'
-          [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcePath, $zipPath, $excludePaths)
+          $sourcePath = Join-Path (Get-Location) 'build'
+          $zipPath = Join-Path (Get-Location) 'build.zip'
+
+          # Ensure the build folder exists
+          if (Test-Path $sourcePath) {
+              [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcePath, $zipPath)
+          } else {
+              Write-Error "Build folder does not exist: $sourcePath"
+              exit 1
+          }
 
       # Step 5: Upload compressed artifact for deployment job
       - name: Upload artifact
@@ -79,4 +85,4 @@ jobs:
         with:
           app-name: 'todoappp'
           slot-name: 'Production'
-          package: .
+          package: 'build.zip'
