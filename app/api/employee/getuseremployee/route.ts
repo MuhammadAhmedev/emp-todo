@@ -3,7 +3,16 @@ import { NextResponse } from "next/server";
 
 export const GET = async (req: any) => {
   try {
-    const userId = req.nextUrl.searchParams.get("userId");
+  const url = new URL(req.url);
+    const userId = url.searchParams.get("userId");
+
+    if (!userId) {
+      return NextResponse.json(
+        { message: "User ID is required" },
+        { status: 400 }
+      );
+    }
+
     const employee = await prisma.employee.findMany({
       where: {
         userId: parseInt(userId),

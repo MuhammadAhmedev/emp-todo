@@ -3,7 +3,16 @@ import { NextResponse } from "next/server";
 
 export const DELETE = async (req: any) => {
   try {
-    const id = req.nextUrl.searchParams.get("id");
+     const url = new URL(req.url);
+    const id = url.searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { message: "ID is required for deletion" },
+        { status: 400 }
+      );
+    }
+
     if (id) {
       const employee = await prisma.employee.delete({
         where: {

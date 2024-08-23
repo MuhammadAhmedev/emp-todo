@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest  # Switched to Ubuntu for better script support
 
     steps:
       # Step 1: Checkout the code
@@ -27,15 +27,10 @@ jobs:
           npm run build
           npm test
 
-      # Step 4: Compress build folder
-      - name: Compress build folder
-        shell: pwsh
+      # Step 4: Compress the .next folder
+      - name: Compress .next folder
         run: |
-          Remove-Item -Force -Recurse -ErrorAction Ignore build.zip
-          $excludePaths = @('node_modules', '.git')
-          $sourcePath = Get-Location
-          $zipPath = Join-Path $sourcePath 'build.zip'
-          [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcePath, $zipPath, $excludePaths)
+          zip -r build.zip .next public package.json
 
       # Step 5: Upload compressed artifact for deployment job
       - name: Upload artifact
