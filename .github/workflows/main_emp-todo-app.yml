@@ -27,15 +27,15 @@ jobs:
           npm run build
           npm test
 
-      # Step 4: Compress build folder
-      - name: Compress build folder
+      # Step 4: Compress .next folder
+      - name: Compress .next folder
         shell: pwsh
         run: |
-          Remove-Item -Force -Recurse -ErrorAction Ignore build.zip
-          $sourcePath = Join-Path (Get-Location) 'build'
-          $zipPath = Join-Path (Get-Location) 'build.zip'
+          Remove-Item -Force -Recurse -ErrorAction Ignore next.zip
+          $sourcePath = Join-Path (Get-Location) '.next'
+          $zipPath = Join-Path (Get-Location) 'next.zip'
 
-          # Ensure the build folder exists
+          # Ensure the .next folder exists
           if (Test-Path $sourcePath) {
               [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcePath, $zipPath)
           } else {
@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-artifact
-          path: build.zip
+          path: next.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -68,7 +68,7 @@ jobs:
 
       # Step 7: Decompress artifact
       - name: Decompress artifact
-        run: unzip build.zip
+        run: unzip next.zip
 
       # Step 8: Login to Azure
       - name: Login to Azure
@@ -85,4 +85,4 @@ jobs:
         with:
           app-name: 'todoappp'
           slot-name: 'Production'
-          package: 'build.zip'
+          package: 'next.zip'
